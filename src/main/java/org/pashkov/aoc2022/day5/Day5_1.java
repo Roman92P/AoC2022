@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Roman Pashkov created on 05.12.2022 inside the package - org.pashkov.aoc2022.day5
  */
-public class Main {
+public class Day5_1 {
     public static void main(String[] args) {
         List<List<String>> preparedInput = prepareInputSplitStacksFromMoves();
         List<String> stacks = preparedInput.get(0);

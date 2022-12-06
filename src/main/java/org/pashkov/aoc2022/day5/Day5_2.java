@@ -38,7 +38,6 @@ public class Day5_2 {
             } else count = 0;
         }
         String s1 = Arrays.toString(split).replaceAll("[\\]\\[\\s,]", "");
-        System.out.println(s1);
         return s1.split("");
     }
 
@@ -48,21 +47,17 @@ public class Day5_2 {
             if (moveLine.length() > 1) {
                 System.out.println("Move: " + count);
                 String[] tempArr = moveLine.split("\\s");
-                System.out.println(Arrays.toString(tempArr));
                 List<String> s = Arrays.stream(tempArr)
                         .filter(s1 -> s1.matches("\\d+"))
                         .collect(Collectors.toList());
                 stacksArr = applyMove(s, stacksArr);
                 count++;
             }
-            System.out.println("Print after move");
-            print2DArr(stacksArr);
         }
         return stacksArr;
     }
 
     private static String[][] applyMove(List<String> s, String[][] stacksArr) {
-        System.out.println(s);
         int quantity = Integer.parseInt(s.get(0));
         int fromStack = Integer.parseInt(s.get(1));
         int toStack = Integer.parseInt(s.get(2));
@@ -76,6 +71,9 @@ public class Day5_2 {
         List<String> columnFromList = Arrays.stream(columnFrom).collect(Collectors.toList());
         List<String> removeEmptyFromTheBeginning = removeEmptyElements(columnFromList);
         outputTargets = castListToArray(removeEmptyFromTheBeginning.subList(0, quantity));
+        removeTakenElements(columnFromList, columnFromList.size() - removeEmptyFromTheBeginning.size(), quantity);
+        String[] stackAfterTakenElements = castListToArray(columnFromList);
+        insertStackInto2DArray(stacksArr, stackAfterTakenElements, stackPosition);
         System.out.println("Targets to be inputed: ");
         System.out.println(Arrays.toString(outputTargets));
 
@@ -99,21 +97,51 @@ public class Day5_2 {
 
         System.out.println("We need to insert this stack: " + Arrays.toString(targetInputColumn));
 
+        stacksArr = insertStackInto2DArray(stacksArr, targetInputColumn, insertIntoStack);
+
+        return stacksArr;
+    }
+
+    private static List<String> removeTakenElements(List<String> columnFromList, int numberOfEmptySpacesAtTheBeginning, int quantity) {
+        for (int i = 0; i < numberOfEmptySpacesAtTheBeginning; i++) {
+            columnFromList.add(0, "*");
+        }
+        int untilWhenNewEmptySpaces = numberOfEmptySpacesAtTheBeginning + quantity;
+        for (int i = numberOfEmptySpacesAtTheBeginning; i < untilWhenNewEmptySpaces ; i++) {
+            columnFromList.add(i, "*");
+        }
+        return columnFromList;
+    }
+
+    private static String[][] insertStackInto2DArray(String[][] stacksArr, String[] targetInputColumn, int insertIntoStack) {
+        int row = 0;
+        while (true) {
+            stacksArr[row][insertIntoStack] = targetInputColumn[row];
+            boolean goOn = true;
+            if (row + 1 >= stacksArr.length) {
+                goOn = false;
+            }
+            if (!goOn) {
+                break;
+            } else {
+                row++;
+            }
+        }
         return stacksArr;
     }
 
     private static String[] joinToArrays(String[] outputTargets, String[] targetInputColumn) {
-       List<String> inputInColumnPart =  Arrays.stream(targetInputColumn).filter(s -> !s.equals("*")).collect(Collectors.toList());
-       int numberOfEmptyPlaces = targetInputColumn.length - inputInColumnPart.size();
-       List<String> outputList = Arrays.stream(outputTargets).collect(Collectors.toList());
+        List<String> inputInColumnPart = Arrays.stream(targetInputColumn).filter(s -> !s.equals("*")).collect(Collectors.toList());
+        int numberOfEmptyPlaces = targetInputColumn.length - inputInColumnPart.size();
+        List<String> outputList = Arrays.stream(outputTargets).collect(Collectors.toList());
         List<String> newList = new ArrayList<>();
         newList.addAll(outputList);
         newList.addAll(inputInColumnPart);
-        System.out.println("New list: "+newList);
+        System.out.println("New list: " + newList);
         if (targetInputColumn.length < newList.size()) {
             int sizeDivision = targetInputColumn.length - newList.size();
             for (int i = 0; i < sizeDivision; i++) {
-             newList.add(0, "*");
+                newList.add(0, "*");
             }
         }
         return castListToArray(newList);
@@ -131,7 +159,7 @@ public class Day5_2 {
         List<String> result = new ArrayList<>();
         boolean startTaking = false;
         for (String s : columnFromList) {
-            if (!"*".equals(s)){
+            if (!"*".equals(s)) {
                 startTaking = true;
             }
             if (startTaking) {
@@ -210,7 +238,7 @@ public class Day5_2 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("AoC2022/day5-1e.txt");
+        return FileReaderImpl.readEachLinesFromFile("day5-1e.txt");
     }
 
 }

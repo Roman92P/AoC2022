@@ -1,4 +1,4 @@
-package org.pashkov.aoc2022.day5;
+package org.pashkov.aoc2022.dayFive;
 
 import org.pashkov.aoc2022.util.FileReaderImpl;
 
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Roman Pashkov created on 05.12.2022 inside the package - org.pashkov.aoc2022.day5
  */
-public class Day5_1 {
+public class Main {
     public static void main(String[] args) {
         List<List<String>> preparedInput = prepareInputSplitStacksFromMoves();
         List<String> stacks = preparedInput.get(0);
@@ -46,7 +46,13 @@ public class Day5_1 {
         for (String moveLine : moves) {
             if (moveLine.length() > 1) {
                 System.out.println("Move: " + count);
-                String s = moveLine.replaceAll("\\D", "");
+                //String s = moveLine.replaceAll("\\D", "");
+                String[] tempArr = moveLine.split("\\s");
+                System.out.println(Arrays.toString(tempArr));
+                List<String> s = Arrays.stream(tempArr)
+                        .filter(s1 -> s1.matches("\\d+"))
+                        .collect(Collectors.toList());
+//                System.out.println(s);
                 stacksArr = applyMove(s, stacksArr);
                 count++;
             }
@@ -56,12 +62,12 @@ public class Day5_1 {
         return stacksArr;
     }
 
-    private static String[][] applyMove(String s, String[][] stacksArr) {
-        String[] paramsOfMove = s.split("");
-        System.out.println(Arrays.toString(paramsOfMove));
-        int quantity = Integer.parseInt(paramsOfMove[0]);
-        int fromStack = Integer.parseInt(paramsOfMove[1]);
-        int toStack = Integer.parseInt(paramsOfMove[2]);
+    private static String[][] applyMove(List<String> s, String[][] stacksArr) {
+//        String[] paramsOfMove = s.split("");
+        System.out.println(s);
+        int quantity = Integer.parseInt(s.get(0));
+        int fromStack = Integer.parseInt(s.get(1));
+        int toStack = Integer.parseInt(s.get(2));
 
         String[] outputTargets = new String[quantity];
 
@@ -70,7 +76,7 @@ public class Day5_1 {
 
         for (int i = 0; i < quantity; i++) {
             String targetCrate = stacksArr[row][stackPosition];
-            while ("*".equals(targetCrate)) {
+            while ("*".equals(targetCrate) && row < stacksArr.length-1) {
                 row++;
                 targetCrate = stacksArr[row][stackPosition];
             }
@@ -110,7 +116,6 @@ public class Day5_1 {
                 row++;
             }
         }
-
         return stacksArr;
     }
 
@@ -165,26 +170,6 @@ public class Day5_1 {
         return stack2DArr;
     }
 
-
-//    private static String[] convertStringToArr(String stackLine, List<String> arrayWidthMap) {
-//        String s1 = arrayWidthMap.toString().replaceAll("\\D", "");
-//        String substring = s1.substring(s1.length() - 1);
-//        String[] strings = new String[Integer.parseInt(substring)];
-//        String s2 = stackLine.replaceAll("[\\]\\[]", "");
-//        char[] chars = s2.toCharArray();
-//        System.out.println(Arrays.toString(chars));
-//        int arrLengthCount = 0;
-//        for (int i = 0; i < chars.length; i++) {
-//            char c = chars[i];
-//            if (Character.isAlphabetic(c)) {
-//                strings[i] = Character.toString(c);
-//            }
-//
-//        }
-//        String s = stackLine.replaceAll("\\s{3}", "*");
-//        return s.split(" ");
-//    }
-
     private static List<List<String>> prepareInputSplitStacksFromMoves() {
         List<String> fileInput = getFileInput();
         int dividerIndex = fileInput.stream().mapToInt(s -> {
@@ -203,7 +188,7 @@ public class Day5_1 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("day5-1.txt");
+        return FileReaderImpl.readEachLinesFromFile("AoC2022/day5-1.txt");
     }
 
 }

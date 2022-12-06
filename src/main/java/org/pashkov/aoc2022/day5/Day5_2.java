@@ -1,7 +1,8 @@
-package org.pashkov.aoc2022.dayFive;
+package org.pashkov.aoc2022.day5;
 
 import org.pashkov.aoc2022.util.FileReaderImpl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * Roman Pashkov created on 05.12.2022 inside the package - org.pashkov.aoc2022.day5
  */
-public class Main {
+public class Day5_2 {
     public static void main(String[] args) {
         List<List<String>> preparedInput = prepareInputSplitStacksFromMoves();
         List<String> stacks = preparedInput.get(0);
@@ -17,7 +18,7 @@ public class Main {
         List<String> widthOf2DArr = preparedInput.get(2);
         List<String> arrayWidthMap = preparedInput.get(3);
         int width2dArr = Integer.parseInt(widthOf2DArr.get(0));
-        String[][] stacksArr = convertStacksTo2DArr(stacks, stacks.size(), width2dArr,arrayWidthMap);
+        String[][] stacksArr = convertStacksTo2DArr(stacks, stacks.size(), width2dArr, arrayWidthMap);
         print2DArr(stacksArr);
         String[][] afterApplyMoves = applyMoves(stacksArr, moves);
         print2DArr(afterApplyMoves);
@@ -46,13 +47,11 @@ public class Main {
         for (String moveLine : moves) {
             if (moveLine.length() > 1) {
                 System.out.println("Move: " + count);
-                //String s = moveLine.replaceAll("\\D", "");
                 String[] tempArr = moveLine.split("\\s");
                 System.out.println(Arrays.toString(tempArr));
                 List<String> s = Arrays.stream(tempArr)
                         .filter(s1 -> s1.matches("\\d+"))
                         .collect(Collectors.toList());
-//                System.out.println(s);
                 stacksArr = applyMove(s, stacksArr);
                 count++;
             }
@@ -63,7 +62,6 @@ public class Main {
     }
 
     private static String[][] applyMove(List<String> s, String[][] stacksArr) {
-//        String[] paramsOfMove = s.split("");
         System.out.println(s);
         int quantity = Integer.parseInt(s.get(0));
         int fromStack = Integer.parseInt(s.get(1));
@@ -74,16 +72,13 @@ public class Main {
         int stackPosition = fromStack - 1;
         int row = 0;
 
-        for (int i = 0; i < quantity; i++) {
-            String targetCrate = stacksArr[row][stackPosition];
-            while ("*".equals(targetCrate) && row < stacksArr.length-1) {
-                row++;
-                targetCrate = stacksArr[row][stackPosition];
-            }
-            outputTargets[i] = targetCrate;
-            stacksArr[row][stackPosition] = "*";
-        }
+        String[] columnFrom = getColumn(stacksArr, stackPosition);
+        List<String> columnFromList = Arrays.stream(columnFrom).collect(Collectors.toList());
+        List<String> removeEmptyFromTheBeginning = removeEmptyElements(columnFromList);
+        outputTargets = castListToArray(removeEmptyFromTheBeginning.subList(0, quantity));
+        System.out.println("Targets to be inputed: ");
         System.out.println(Arrays.toString(outputTargets));
+
         int insertIntoStack = toStack - 1;
         row = 0;
 
@@ -99,24 +94,51 @@ public class Main {
             print2DArr(stacksArr);
         }
 
-        for (int i = 0; i < quantity; i++) {
-            System.out.println("To insert: " + Arrays.toString(outputTargets));
-            String targetCrate = stacksArr[row][insertIntoStack];
-            while (true) {
-                targetCrate = stacksArr[row][insertIntoStack];
-                boolean tempMatcher = true;
-                if (row + 1 < stacksArr.length) {
-                    tempMatcher = (stacksArr[row + 1][insertIntoStack]).matches("[A-Z]");
-                }
-                if ("*".equals(targetCrate) && tempMatcher) {
-                    stacksArr[row][insertIntoStack] = outputTargets[i];
-                    row = 0;
-                    break;
-                }
-                row++;
+        targetInputColumn = getColumn(stacksArr, insertIntoStack);
+        targetInputColumn = joinToArrays(outputTargets, targetInputColumn);
+
+        System.out.println("We need to insert this stack: " + Arrays.toString(targetInputColumn));
+
+        return stacksArr;
+    }
+
+    private static String[] joinToArrays(String[] outputTargets, String[] targetInputColumn) {
+       List<String> inputInColumnPart =  Arrays.stream(targetInputColumn).filter(s -> !s.equals("*")).collect(Collectors.toList());
+       int numberOfEmptyPlaces = targetInputColumn.length - inputInColumnPart.size();
+       List<String> outputList = Arrays.stream(outputTargets).collect(Collectors.toList());
+        List<String> newList = new ArrayList<>();
+        newList.addAll(outputList);
+        newList.addAll(inputInColumnPart);
+        System.out.println("New list: "+newList);
+        if (targetInputColumn.length < newList.size()) {
+            int sizeDivision = targetInputColumn.length - newList.size();
+            for (int i = 0; i < sizeDivision; i++) {
+             newList.add(0, "*");
             }
         }
-        return stacksArr;
+        return castListToArray(newList);
+    }
+
+    private static String[] castListToArray(List<String> removeEmptyFromTheBeginning) {
+        String[] resultArr = new String[removeEmptyFromTheBeginning.size()];
+        for (int i = 0; i < removeEmptyFromTheBeginning.size(); i++) {
+            resultArr[i] = removeEmptyFromTheBeginning.get(i);
+        }
+        return resultArr;
+    }
+
+    private static List<String> removeEmptyElements(List<String> columnFromList) {
+        List<String> result = new ArrayList<>();
+        boolean startTaking = false;
+        for (String s : columnFromList) {
+            if (!"*".equals(s)){
+                startTaking = true;
+            }
+            if (startTaking) {
+                result.add(s);
+            }
+        }
+        return result;
     }
 
     private static String[][] increase2DArr(String[][] stacksArr, int toAddFreeSpace) {
@@ -188,7 +210,7 @@ public class Main {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("AoC2022/day5-1.txt");
+        return FileReaderImpl.readEachLinesFromFile("AoC2022/day5-1e.txt");
     }
 
 }

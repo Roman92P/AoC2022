@@ -36,16 +36,6 @@ public class Day6_1 {
         }
     }
 
-    private static String getLine() {
-        try (InputStreamReader inputStream = getInputStreamFromFile()) {
-            BufferedReader br = new BufferedReader(inputStream);
-            return br.lines().collect(Collectors.joining());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
     private static InputStreamReader getInputStreamFromFile() throws FileNotFoundException {
         File file = new File("AoC2022/day6-1.txt");
         return new InputStreamReader(new FileInputStream(file));

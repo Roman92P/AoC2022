@@ -1,4 +1,4 @@
-package org.pashkov.aoc2022.daz6;
+package org.pashkov.aoc2022.day6;
 
 import java.io.*;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Day6_2 {
+public class Day6_1 {
     public static void main(String[] args) {
         readCharByChar();
     }
@@ -20,7 +20,7 @@ public class Day6_2 {
                 char c = (char) br.read();
                 str = str + c;
                 indexOfMarker++;
-                if (str.length() >= 14) {
+                if (str.length() >=4) {
                     String[] tempStr = str.split("");
                     Set<String> uniqueStateOfInput = Arrays.stream(tempStr).collect(Collectors.toCollection(LinkedHashSet::new));
                     if (uniqueStateOfInput.size() < str.length()) {
@@ -37,8 +37,7 @@ public class Day6_2 {
     }
 
     private static InputStreamReader getInputStreamFromFile() throws FileNotFoundException {
-        File file = new File("AoC2022/day6-1.txt");
+        File file = new File("AoC2022/day6-1e.txt");
         return new InputStreamReader(new FileInputStream(file));
     }
-
 }

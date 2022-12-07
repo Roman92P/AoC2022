@@ -37,7 +37,7 @@ public class Day6_1 {
     }
 
     private static InputStreamReader getInputStreamFromFile() throws FileNotFoundException {
-        File file = new File("AoC2022/day6-1.txt");
+        File file = new File("AoC2022/day6-1e.txt");
         return new InputStreamReader(new FileInputStream(file));
     }
 }

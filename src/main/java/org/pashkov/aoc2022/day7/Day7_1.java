@@ -1,9 +1,7 @@
 package org.pashkov.aoc2022.day7;
 
 import java.io.*;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Roman Pashkov created on 07.12.2022 inside the package - org.pashkov.aoc2022.day7
@@ -19,76 +17,140 @@ public class Day7_1 {
 
     public static void main(String[] args) {
 
+        FileSystemRootElement fileSystemStructure = createFileSystemStructure();
+
+        printFileSystemStructure(fileSystemStructure);
+
+    }
+
+    private static void printFileSystemStructure(FileSystemRootElement fileSystemStructure) {
+        Set<FileSystemDirectory> rootDirectory = fileSystemStructure.getDirectories();
+        FileSystemDirectory rootDir = rootDirectory.stream().findFirst().get();
+        System.out.println(rootDir.getDirectories());
+        System.out.println(rootDir.getDirectoryFiles());
+        printDirectoryContent(rootDir);
+    }
+
+    private static void printDirectoryContent(FileSystemDirectory directoryToBePrinted) {
+        Set<FileSystemDirectory> dirs = directoryToBePrinted.getDirectories();
+        Set<FileSystemFile> files = directoryToBePrinted.getDirectoryFiles();
+        files.stream().forEach(FileSystemFile::toString);
+    }
+
+    private static FileSystemRootElement createFileSystemStructure() {
         FileSystemRootElement fileSystemRootElement = new FileSystemRootElement();
         String currentPath = "";
         String gotCommand = "";
+        int stepCount = 0;
         try (InputStreamReader inputStream = getInputStreamFromFile()) {
             try (BufferedReader br = new BufferedReader(inputStream)) {
                 while (br.ready()) {
-                    String inputLine = gotCommand;
-                    if (inputLine.equals("")) {
-                        inputLine = br.readLine();
+                    stepCount++;
+                    String inputLine = br.readLine();
+                    System.out.println("Here " + inputLine + " " + gotCommand);
+                    if (inputLine.equals(ROOT_DIR)) {
+                        FileSystemDirectory fileSystemDirectory = new FileSystemDirectory("/");
+                        fileSystemRootElement.setDirectories(Set.of(fileSystemDirectory));
+                        continue;
                     }
-                    if (ROOT_DIR.equals(inputLine)) {
-                        currentPath = currentPath + "/";
-                        FileSystemDirectory rootDir = new FileSystemDirectory("/");
-                        Set<FileSystemDirectory> directories = fileSystemRootElement.getDirectories();
-                        directories.add(rootDir);
-                        fileSystemRootElement.setDirectories(directories);
+                    if (inputLine.matches(GO_LEVEL_IN_REGEX) || gotCommand.equals(GO_LEVEL_IN_REGEX)) {
+                        System.out.println("Going level in");
+                        if (currentPath.equals("/")) {
+                            currentPath = currentPath + inputLine.split("\\s")[2];
+                        } else {
+                            currentPath = currentPath + "/" + inputLine.split("\\s")[2];
+                        }
                     }
-                    if (LIST_DIR_ELEMENTS.equals(inputLine) || gotCommand.equals(LIST_DIR_ELEMENTS)) {
+                    if (GO_LEVEL_UP.equals(inputLine) || gotCommand.equals(GO_LEVEL_UP)) {
+                        System.out.println("Going level out");
+                        if (!currentPath.equals("/")) {
+                            if (currentPath.substring(0, currentPath.length() - 2).isEmpty()) {
+                                currentPath = "/";
+                            } else {
+                                currentPath = currentPath.substring(0, currentPath.length() - 2);
+                            }
+                        }
+                    }
+                    if (inputLine.equals(LIST_DIR_ELEMENTS) || currentPath.equals("/")) {
+                        List<String> filesAndDirsToAdd = new ArrayList<>();
                         while (true) {
-                            String lineAfterLs = br.readLine();
-                            if (lineAfterLs.matches(COMMAND)) {
-                                gotCommand = lineAfterLs;
+                            String lineAfterList = br.readLine();
+                            if (lineAfterList.equals(GO_LEVEL_UP) || lineAfterList.matches(GO_LEVEL_IN_REGEX)) {
+                                gotCommand = lineAfterList;
                                 break;
                             }
-                            FileSystemDirectory fileSystemDirectory = getWorkingDirectory(currentPath, fileSystemRootElement);
-                            if (lineAfterLs.matches(DIR_RECOGNIZE_REGEX)) {
-                                FileSystemDirectory newDir = new FileSystemDirectory(lineAfterLs.split("\\s")[1]);
-                                Set<FileSystemDirectory> directories = fileSystemDirectory.getDirectories();
-                                directories.add(newDir);
-                                fileSystemDirectory.setDirectories(directories);
-                            } else if (lineAfterLs.matches(FILE_RECOGNIZE_REGEX)) {
-                                String inputFileSize = lineAfterLs.split("\\s")[0];
-                                String inputFileName = lineAfterLs.split("\\s")[1];
-                                FileSystemFile fileSystemFile = new FileSystemFile();
-                                fileSystemFile.setFileName(inputFileName);
-                                fileSystemFile.setSize(Long.parseLong(inputFileSize));
-                                Set<FileSystemFile> directoryFiles = fileSystemDirectory.getDirectoryFiles();
-                                directoryFiles.add(fileSystemFile);
-                                fileSystemDirectory.setDirectoryFiles(directoryFiles);
-                            }
+                            filesAndDirsToAdd.add(lineAfterList);
                         }
-                    } else if (inputLine.matches(GO_LEVEL_IN_REGEX) || gotCommand.equals(GO_LEVEL_IN_REGEX)) {
-                        if (currentPath.equals("/")) {
-                            currentPath = currentPath + inputLine.split("\\s")[1];
-                        } else {
-                            currentPath = currentPath + "/" + inputLine.split("\\s")[1];
-                        }
-                    } else if (GO_LEVEL_UP.equals(inputLine) || gotCommand.equals(GO_LEVEL_UP)) {
-                        if (!currentPath.equals("/")) {
-                            currentPath = currentPath.substring(0, currentPath.length() - 1);
-                        }
+                        System.out.println(filesAndDirsToAdd);
+                        addContentToCurrentDirectory(fileSystemRootElement, filesAndDirsToAdd, currentPath);
+                    }
+                    if (inputLine.isEmpty()) {
+                        break;
                     }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(fileSystemRootElement);
+//        System.out.println(fileSystemRootElement);
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        return fileSystemRootElement;
     }
 
+    private static void addContentToCurrentDirectory(FileSystemRootElement fileSystemRootElement, List<String> filesAndDirsToAdd, String currentPath) {
+        FileSystemDirectory directory = null;
+        if (currentPath.equals("/") || currentPath.isEmpty()) {
+           FileSystemDirectory rootDir = new FileSystemDirectory("/");
+           fileSystemRootElement.setDirectories(Set.of(rootDir));
+        } else {
+            directory = getWorkingDirectory(currentPath, fileSystemRootElement);
+        }
+        System.out.println("To what directory to add: " + directory + " if current path is: " + currentPath);
+        for (String fileOrDirectory : filesAndDirsToAdd) {
+            if (fileOrDirectory.matches(DIR_RECOGNIZE_REGEX)) {
+                Set<FileSystemDirectory> directories = null;
+                if (Optional.ofNullable(directory.getDirectories()).isEmpty()) {
+                    directories = new HashSet<>();
+                } else {
+                    directories = directory.getDirectories();
+                }
+                FileSystemDirectory directory1 = new FileSystemDirectory(fileOrDirectory.substring(fileOrDirectory.length() - 1));
+                directories.add(directory1);
+                directory.setDirectories(directories);
+                System.out.println("saved dir");
+            } else if (fileOrDirectory.matches(FILE_RECOGNIZE_REGEX)) {
+                Set<FileSystemFile> files = directory.getDirectoryFiles();
+                if (files == null) {
+                    files = new HashSet<>();
+                }
+                String[] fileConstructorArr = fileOrDirectory.split("\\s");
+                FileSystemFile file = new FileSystemFile(fileConstructorArr[1], Long.parseLong(fileConstructorArr[0]));
+                files.add(file);
+                directory.setDirectoryFiles(files);
+            }
+        }
+    }
+
+
     private static FileSystemDirectory getWorkingDirectory(String currentPath, FileSystemRootElement fileSystemRootElement) {
-        return fileSystemRootElement.getDirectories()
+        System.out.println("Get work dir for current path: " + currentPath);
+        Optional<FileSystemDirectory> dir = fileSystemRootElement.getDirectories()
                 .stream()
-                .filter(fileSystemDirectory -> fileSystemDirectory.getDirName().equals(currentPath.substring(currentPath.length()-1)))
-                .findFirst()
-                .get();
+                .filter(fileSystemDirectory -> fileSystemDirectory.getDirName().equals(currentPath.substring(currentPath.length() - 1)))
+                .findFirst();
+//        if (dir.isEmpty()) {
+//            FileSystemDirectory fileSystemDirectory = new FileSystemDirectory(currentPath.substring(currentPath.length() - 1));
+//            FileSystemDirectory parentDirectory = getWorkingDirectory(currentPath.substring(currentPath.length() - 2, currentPath.length() - 1), fileSystemRootElement);
+//            Set<FileSystemDirectory> parentDirs = parentDirectory.getDirectories();
+//            parentDirs.add(fileSystemDirectory);
+//            return fileSystemDirectory;
+//        }
+
+        return dir.get();
     }
 
     private static InputStreamReader getInputStreamFromFile() throws FileNotFoundException {
-        File file = new File("day7-1e.txt");
+        File file = new File("AoC2022/day7-1e.txt");
         return new InputStreamReader(new FileInputStream(file));
     }
 
@@ -221,6 +283,84 @@ public class Day7_1 {
         }
     }
 
+    //    private static FileSystemRootElement createFileSystemStructure() {
+//        FileSystemRootElement fileSystemRootElement = new FileSystemRootElement();
+//        String currentPath = "";
+//        String gotCommand = "";
+//        int stepCount = 0;
+//        try (InputStreamReader inputStream = getInputStreamFromFile()) {
+//            try (BufferedReader br = new BufferedReader(inputStream)) {
+//                while (br.ready()) {
+//                    stepCount++;
+//                    System.out.println("Step count is: " + stepCount);
+//                    String inputLine = gotCommand;
+//                    if (inputLine.equals("")) {
+//                        inputLine = br.readLine();
+//                    }
+//                    System.out.println("Current input line is: " + inputLine);
+//                    System.out.println("Current directory is: " + currentPath);
+//                    if (ROOT_DIR.equals(inputLine)) {
+//                        System.out.println("Adding root path");
+//                        currentPath = currentPath + "/";
+//                        FileSystemDirectory rootDir = new FileSystemDirectory("/");
+//                        Set<FileSystemDirectory> directories = fileSystemRootElement.getDirectories();
+//                        directories.add(rootDir);
+//                        fileSystemRootElement.setDirectories(directories);
+//                    }
+//                    if (LIST_DIR_ELEMENTS.equals(inputLine) || gotCommand.equals(LIST_DIR_ELEMENTS)) {
+//                        System.out.println("Listing dir content");
+//                        while (true) {
+//                            String lineAfterLs = br.readLine();
+//                            if (lineAfterLs.matches(COMMAND)) {
+//                                System.out.println("Was command");
+//                                gotCommand = lineAfterLs;
+//                                break;
+//                            }
+//                            FileSystemDirectory fileSystemDirectory = getWorkingDirectory(currentPath, fileSystemRootElement);
+//                            if (lineAfterLs.matches(DIR_RECOGNIZE_REGEX)) {
+//                                FileSystemDirectory newDir = new FileSystemDirectory(lineAfterLs.split("\\s")[1]);
+//                                Set<FileSystemDirectory> directories = fileSystemDirectory.getDirectories();
+//                                directories.add(newDir);
+//                                fileSystemDirectory.setDirectories(directories);
+//                                break;
+//                            } else if (lineAfterLs.matches(FILE_RECOGNIZE_REGEX)) {
+//                                String inputFileSize = lineAfterLs.split("\\s")[0];
+//                                String inputFileName = lineAfterLs.split("\\s")[1];
+//                                FileSystemFile fileSystemFile = new FileSystemFile();
+//                                fileSystemFile.setFileName(inputFileName);
+//                                fileSystemFile.setSize(Long.parseLong(inputFileSize));
+//                                Set<FileSystemFile> directoryFiles = fileSystemDirectory.getDirectoryFiles();
+//                                directoryFiles.add(fileSystemFile);
+//                                fileSystemDirectory.setDirectoryFiles(directoryFiles);
+//                                break;
+//                            }
+//                        }
+//                    } else if (inputLine.matches(GO_LEVEL_IN_REGEX) || gotCommand.equals(GO_LEVEL_IN_REGEX)) {
+//                        System.out.println("Going level in");
+//                        if (currentPath.equals("/")) {
+//                            currentPath = currentPath + inputLine.split("\\s")[2];
+//                        } else {
+//                            currentPath = currentPath + "/" + inputLine.split("\\s")[2];
+//                        }
+//                    } else if (GO_LEVEL_UP.equals(inputLine) || gotCommand.equals(GO_LEVEL_UP)) {
+//                        System.out.println("Going level out");
+//                        if (!currentPath.equals("/")) {
+//                            if (currentPath.substring(0, currentPath.length() - 2).isEmpty()) {
+//                                currentPath = "/";
+//                            } else {
+//                                currentPath = currentPath.substring(0, currentPath.length() - 2);
+//                            }
+//                        }
+//                       System.out.println("Current path after going level out is: " + currentPath);
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+////        System.out.println(fileSystemRootElement);
+//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//        return fileSystemRootElement;
+//    }
+
 }
-
-

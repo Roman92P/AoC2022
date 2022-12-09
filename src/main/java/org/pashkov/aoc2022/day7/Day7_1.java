@@ -25,12 +25,6 @@ public class Day7_1 {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 
-        for (Map.Entry<String, List<String>> entry : collect.entrySet()) {
-            System.out.println(entry.getKey() + " " + entry.getValue());
-        }
-        System.out.println("Number of dir: " + systemStructureMap.size());
-
-        System.out.println("Starting summing");
         List<Long> dirSums = systemStructureMap.entrySet()
                 .stream()
                 .mapToLong(value -> calculateDirSizeSums(value.getKey(), systemStructureMap))
@@ -38,14 +32,11 @@ public class Day7_1 {
                 .collect(Collectors.toList());
 
         List<Long> sortedFilteredSums = dirSums.stream()
-//                .sorted()
                 .filter(aLong -> aLong <= 100_000)
                 .collect(Collectors.toList());
 
         System.out.println("All sums: " + sortedFilteredSums);
         System.out.println("All sums: " + sortedFilteredSums.stream().mapToLong(Long::longValue).sum());
-
-//        System.out.println(sortedFilteredSums.get(sortedFilteredSums.size()-1));
     }
 
     private static Long calculateDirSizeSums(String s, Map<String, List<String>> systemStructureMap) {
@@ -67,7 +58,6 @@ public class Day7_1 {
                 dirSum += calculateDirSizeSums(pathToFind, systemStructureMap);
             }
         }
-        System.out.println("In path: " + s + ". Sum for: " + dirContent + ". Will be: " + dirSum);
         return dirSum;
     }
 
@@ -86,14 +76,12 @@ public class Day7_1 {
                     }
                 } else if (commandLine.equals(GO_LEVEL_UP)) {
                     currentLocation = goOutFromCurrentPath(currentLocation);
-                    System.out.println("Went out: " + currentLocation);
                 } else if (commandLine.equals(ROOT_DIR)) {
                     currentLocation = "/";
                 }
             } else if (commandLine.equals(LIST_DIR_ELEMENTS)) {
                 List<String> content = new ArrayList<>();
                 String nextContentElement = "";
-                System.out.println("Before adding content I am here: " + currentLocation);
                 while (true) {
                     i++;
                     nextContentElement = fileInput.get(i);
@@ -108,7 +96,6 @@ public class Day7_1 {
                     }
                 }
                 systemDirLevelsMap.put(currentLocation, content);
-                System.out.println("In path: " + currentLocation + ". Adding this: " + content);
             }
         }
         return systemDirLevelsMap;

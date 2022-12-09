@@ -28,6 +28,7 @@ public class Day7_1 {
         for (Map.Entry<String, List<String>> entry : collect.entrySet()) {
             System.out.println(entry.getKey() + " " + entry.getValue());
         }
+        System.out.println("Number of dir: " + systemStructureMap.size());
 
         System.out.println("Starting summing");
         List<Long> dirSums = systemStructureMap.entrySet()
@@ -37,12 +38,14 @@ public class Day7_1 {
                 .collect(Collectors.toList());
 
         List<Long> sortedFilteredSums = dirSums.stream()
-                .filter(aLong -> aLong <= 100000)
+//                .sorted()
+                .filter(aLong -> aLong <= 100_000)
                 .collect(Collectors.toList());
 
         System.out.println("All sums: " + sortedFilteredSums);
+        System.out.println("All sums: " + sortedFilteredSums.stream().mapToLong(Long::longValue).sum());
 
-        System.out.println(sortedFilteredSums.get(sortedFilteredSums.size()-1));
+//        System.out.println(sortedFilteredSums.get(sortedFilteredSums.size()-1));
     }
 
     private static Long calculateDirSizeSums(String s, Map<String, List<String>> systemStructureMap) {
@@ -52,16 +55,16 @@ public class Day7_1 {
             String str = fileOrDir.trim();
             String[] tempArr = str.split("\\s");
             try {
-               long l = Long.parseLong(tempArr[0]);
-               dirSum += l;
+                long l = Long.parseLong(tempArr[0]);
+                dirSum += l;
             } catch (IllegalArgumentException e) {
                 String pathToFind = "";
                 if (s.equals("/")) {
-                    pathToFind = "/"+tempArr[1];
+                    pathToFind = "/" + tempArr[1];
                 } else {
                     pathToFind = s + "/" + tempArr[1];
                 }
-                dirSum += calculateDirSizeSums(pathToFind ,systemStructureMap);
+                dirSum += calculateDirSizeSums(pathToFind, systemStructureMap);
             }
         }
         System.out.println("In path: " + s + ". Sum for: " + dirContent + ". Will be: " + dirSum);
@@ -94,14 +97,18 @@ public class Day7_1 {
                 while (true) {
                     i++;
                     nextContentElement = fileInput.get(i);
+                    content.add(nextContentElement);
+
                     if (i + 1 >= fileInput.size() || nextContentElement.matches(COMMAND)) {
-                        if (nextContentElement.matches(COMMAND)) i = i - 1;
+                        if (nextContentElement.matches(COMMAND)) {
+                            i = i - 1;
+                            content = content.subList(0, content.size() - 1);
+                        }
                         break;
                     }
-                    content.add(nextContentElement);
                 }
                 systemDirLevelsMap.put(currentLocation, content);
-                System.out.println("In path: "+currentLocation + ". Adding this: "+content);
+                System.out.println("In path: " + currentLocation + ". Adding this: " + content);
             }
         }
         return systemDirLevelsMap;
@@ -115,6 +122,6 @@ public class Day7_1 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("Aoc2022/day7-1.txt");
+        return FileReaderImpl.readEachLinesFromFile("day7-1.txt");
     }
 }

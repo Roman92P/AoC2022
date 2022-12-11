@@ -10,80 +10,150 @@ import java.util.stream.Collectors;
  */
 public class Day9_1 {
 
-    private final static String STARTING_POINT = "0-0";
-    private static String head = "0-0";
-    private static String tail = "0-0";
-    private static List<String> headTrack = new ArrayList<>();
-    private static List<String> tailTrack = new ArrayList<>();
+    private static String head = "89:89";
+    private static String tail = "89:89";
+    private static List<String> headTrack = new LinkedList<>();
+    private static List<String> tailTrack = new LinkedList<>();
 
     public static void main(String[] args) {
+        String[][] map = createMap();
+//        print2DArr(map);
         List<String> fileInput = getFileInput();
-        headTrack.add(head);
-        tailTrack.add(tail);
+        System.out.println(fileInput.size());
+        //6090
+//        headTrack.add(head);
+//        tailTrack.add(tail);
         for (String steps : fileInput) {
-            System.out.println("Current step: " + steps);
+            String direction = "";
+            switch (steps.substring(0, 1)) {
+                case "R":
+                    direction = "right";
+                    break;
+                case "L":
+                    direction = "left";
+                    break;
+                case "U":
+                    direction = "Up";
+                    break;
+                case "D":
+                    direction = "down";
+                    break;
+            }
+            System.out.println(direction + " " + steps);
             changeHeadPosition(steps);
+            System.out.println("____________________________________________");
         }
         System.out.println(headTrack);
         System.out.println(tailTrack);
         System.out.println(tailTrack.stream().distinct().collect(Collectors.toList()));
         long count = tailTrack.stream().distinct().count();
         System.out.println(count);
+        System.out.println("Not distinct " + tailTrack.size());
+        System.out.println("Head moves: " + headTrack.size());
+
+        addTailPositionsToMap(tailTrack.stream().distinct().collect(Collectors.toList()), map);
+        print2DArr(map);
+
     }
 
-    private static void adoptTailPositionToCurrentHead() {
-            int[] headCords = getCurrentCoordinates(head);
-            int headX = headCords[0];
-            int headY = headCords[1];
-            int[] tailCords = getCurrentCoordinates(tail);
-            int tailX = tailCords[0];
-            int tailY = tailCords[1];
-            int xSubs = headX - tailX;
-            int ySubs = headY - tailY;
-            if (xSubs != 0 || ySubs != 0) {
-
-            }
-
-            tail = tailX + "-" + tailY;
-            tailTrack.add(tail);
+    private static String[][] addTailPositionsToMap(List<String> collect, String[][] map) {
+        int row = map.length-1;
+        for (String cords : collect) {
+            String[] split = cords.split(":");
+            int x =  Integer.parseInt(split[0]);
+            int y =  Integer.parseInt(split[1]);
+            map[row-y][x] = "#";
+        }
+        return map;
     }
 
     private static void changeHeadPosition(String howFar) {
         int j = Integer.parseInt(howFar.substring(howFar.length() - 1));
-        for (int i = 1; i < j+1; i++) {
+        for (int i = 1; i < j + 1; i++) {
+            System.out.println("Head before step: " + head);
             int[] currentHeadCoordinates = getCurrentCoordinates(head);
             int x = currentHeadCoordinates[0];
             int y = currentHeadCoordinates[1];
             switch (howFar.substring(0, howFar.length() - 1).trim()) {
                 case "R":
                     x = x + 1;
-                    head = x + "-" + y;
+                    head = x + ":" + y;
                     break;
                 case "L":
-                    x = x - 1;
-                    head = x + "-" + y;
+                    x = Math.max(x - 1,0);
+                    head = x + ":" + y;
                     break;
                 case "D":
-                    y = y - 1;
-                    head = x + "-" + y;
+                    y = Math.max(y - 1,0);
+                    head = x + ":" + y;
                     break;
                 case "U":
                     y = y + 1;
-                    head = x + "-" + y;
+                    head = x + ":" + y;
                     break;
             }
+            System.out.println("Head after step: " + head);
             headTrack.add(head);
-            adoptTailPositionToCurrentHead();
+            System.out.println("Tail before step: " + tail);
+            if (!nextToEachOther() && !head.equals(tail)) {
+                tail = headTrack.get(headTrack.size() - 2);
+            }
+            System.out.println("Tail after step: " + tail);
+            tailTrack.add(tail);
         }
     }
 
+    private static boolean nextToEachOther() {
+        int[] currentHeadCoordinates = getCurrentCoordinates(head);
+        int x = currentHeadCoordinates[0];
+        int y = currentHeadCoordinates[1];
+        String[] tempArr = new String[8];
+        //R
+        tempArr[0] = (x + 1) + ":" + y;
+        //L
+        tempArr[1] = (x - 1) + ":" + y;
+        //D
+        tempArr[2] = x + ":" + (y - 1);
+        //U
+        tempArr[3] = x + ":" + (y + 1);
+        //UL
+        tempArr[4] = (x - 1) + ":" + (y + 1);
+        //UR
+        tempArr[5] = (x + 1) + ":" + (y + 1);
+        //DL
+        tempArr[6] = (x - 1) + ":" + (y - 1);
+        //DR
+        tempArr[7] = (x + 1) + ":" + (y - 1);
+        return Arrays.stream(tempArr).filter(s -> s.equals(tail)).count() >= 1;
+    }
+
     private static int[] getCurrentCoordinates(String headOrTail) {
-        return Arrays.stream(headOrTail.split("-"))
+        return Arrays.stream(headOrTail.split(":"))
                 .mapToInt(Integer::parseInt)
                 .toArray();
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("day9-1e.txt");
+        return FileReaderImpl.readEachLinesFromFile("day9-1.txt");
+    }
+
+    private static String[][] createMap () {
+        int s =Integer.parseInt(head.split(":")[0]);
+        String[][] strings = new String[150][150];
+        for (int i = 0; i < strings.length; i++) {
+            for (int j = 0; j < strings[i].length; j++) {
+                strings[i][j] = ".";
+            }
+        }
+        return strings;
+    }
+
+    private static void print2DArr(String[][] stacksArr) {
+        for (int i = 0; i < stacksArr.length; i++) {
+            for (int j = 0; j < stacksArr[i].length; j++) {
+                System.out.print(stacksArr[i][j]);
+            }
+            System.out.println();
+        }
     }
 }

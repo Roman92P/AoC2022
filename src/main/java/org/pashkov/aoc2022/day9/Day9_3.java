@@ -8,16 +8,10 @@ public class Day9_3 {
     public static void main(String[] args) {
         int[] head = new int[]{0, 0};
         int[] tail = new int[]{0, 0};
-
         Set<String> tailTrack = new TreeSet<>();
-
         tailTrack.add("0:0");
         List<int[]> headTrack = new LinkedList<>();
-
         for (String lineCommand : getFileInput()) {
-            System.out.println("Step: " + lineCommand);
-            System.out.println("Head before step: " + Arrays.toString(head));
-            System.out.println("Tail before step: " + Arrays.toString(tail));
             String[] commandArr = lineCommand.trim().split("\\s");
             String direction = commandArr[0];
             String numberOfSteps = commandArr[1];
@@ -26,14 +20,9 @@ public class Day9_3 {
                 headTrack.add(head);
                 if (!checkIfCordsAreTouching(head, tail)) {
                     tail = tailCatchUp(head, tail);
-                    System.out.println("Will add tail: " + Arrays.toString(tail));
                     tailTrack.add(tail[0]+":"+tail[1]);
-
                 }
             }
-            System.out.println("Head after step: " + Arrays.toString(head));
-            System.out.println("Tail after step: " + Arrays.toString(tail));
-            System.out.println("____________________________________________");
         }
         System.out.println(tailTrack.stream().distinct().count());
     }
@@ -42,22 +31,6 @@ public class Day9_3 {
         int diffX = head[0] - tail[0];
         int diffY = head[1] - tail[1];
         return new int[]{(int) (tail[0] + Math.signum(diffX)), (int) (tail[1] + Math.signum(diffY))};
-    }
-
-    private static boolean headAndTailAreTouching(int[] head, int[] tail) {
-        int x = head[0];
-        int y = head[1];
-        List<int[]> allAroundDots = new ArrayList<>();
-        allAroundDots.add(new int[]{x + 1, y});
-        allAroundDots.add(new int[]{x - 1, y});
-        allAroundDots.add(new int[]{x, y - 1});
-        allAroundDots.add(new int[]{x, y + 1});
-        allAroundDots.add(new int[]{x - 1, y + 1});
-        allAroundDots.add(new int[]{x + 1, y + 1});
-        allAroundDots.add(new int[]{x - 1, y - 1});
-        allAroundDots.add(new int[]{x + 1, y - 1});
-        allAroundDots.add(new int[]{x, y});
-        return allAroundDots.stream().filter(ints -> Arrays.equals(ints, tail)).count() == 1;
     }
 
     private static boolean checkIfCordsAreTouching(int[] head, int[] tail) {

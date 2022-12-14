@@ -5,17 +5,18 @@ import org.pashkov.aoc2022.util.FileReaderImpl;
 import java.util.*;
 
 public class Day9_2 {
-
+//2440 to high
+    //1380 to low
     private static Set<String> tailTrack = new TreeSet<>();
 
     public static void main(String[] args) {
-        int[] head = new int[]{0, 0};
+        int[] head = new int[]{20, 20};
         List<int[]> tails = new LinkedList<>();
         for (int i = 0; i < 10; i++) {
-            tails.add(new int[]{0,0});
+            tails.add(new int[]{20, 20});
         }
 
-        tailTrack.add("0:0");
+        tailTrack.add("20:20");
         List<int[]> headTrack = new LinkedList<>();
         for (String lineCommand : getFileInput()) {
             String[] commandArr = lineCommand.trim().split("\\s");
@@ -24,26 +25,25 @@ public class Day9_2 {
             for (int i = 0; i < Integer.parseInt(numberOfSteps); i++) {
                 head = adjustHeadPosition(direction, head);
                 headTrack.add(head);
-//                if (!checkIfCordsAreTouching(head, tail)) {
-//                    tail = tailCatchUp(head, tail);
-//                    tailTrack.add(tail[0]+":"+tail[1]);
-//                }
+                adoptAllTailsPosToCurrentHeadPosition(head, tails, 0);
             }
-            adoptAllTailsPosToCurrentHeadPosition(head, tails, 0);
         }
-        System.out.println(tailTrack.stream().distinct().count());
+        System.out.println((long) tailTrack.size());
+        System.out.println(tailTrack);
     }
 
     private static void adoptAllTailsPosToCurrentHeadPosition(int[] head, List<int[]> tails, int startPosition) {
-       int[]tailUnderCheck = tails.get(startPosition);
-       if (!checkIfCordsAreTouching(head,tailUnderCheck)) {
-           tailUnderCheck = tailCatchUp(head, tailUnderCheck);
-           tailTrack.add(tailUnderCheck[0]+":"+tailUnderCheck[1]);
-       }
-       boolean runNextRoundOfAdopt = false;
-        for (int i = startPosition+1; i < tails.size(); i++) {
-
-
+        int[] tailUnderCheck = tails.get(startPosition);
+        boolean b = checkIfCordsAreTouching(head, tailUnderCheck);
+        if (!b) {
+            tailUnderCheck = tailCatchUp(head, tailUnderCheck);
+            tails.set(startPosition, tailUnderCheck);
+        }
+        if (startPosition < 9 && !b){
+            adoptAllTailsPosToCurrentHeadPosition(tailUnderCheck, tails, startPosition+1);
+        }
+        else if (startPosition == 9) {
+            tailTrack.add(tailUnderCheck[0] + ":" + tailUnderCheck[1]);
         }
     }
 
@@ -56,7 +56,7 @@ public class Day9_2 {
     private static boolean checkIfCordsAreTouching(int[] head, int[] tail) {
         int diffX = head[0] - tail[0];
         int diffY = head[1] - tail[1];
-        return Math.abs(diffX) > 1 || Math.abs(diffY) > 1? false : true;
+        return Math.abs(diffX) > 1 || Math.abs(diffY) > 1 ? false : true;
     }
 
     private static int[] adjustHeadPosition(String direction, int[] head) {
@@ -83,6 +83,6 @@ public class Day9_2 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("AoC2022/day9-1.txt");
+        return FileReaderImpl.readEachLinesFromFile("day9-1e.txt");
     }
 }

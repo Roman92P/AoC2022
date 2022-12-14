@@ -63,6 +63,6 @@ public class Day9_3 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("AoC2022/day9-1.txt");
+        return FileReaderImpl.readEachLinesFromFile("day9-1e.txt");
     }
 }

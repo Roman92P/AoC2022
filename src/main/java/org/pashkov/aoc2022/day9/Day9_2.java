@@ -43,6 +43,7 @@ public class Day9_2 {
        boolean runNextRoundOfAdopt = false;
         for (int i = startPosition+1; i < tails.size(); i++) {
 
+
         }
     }
 

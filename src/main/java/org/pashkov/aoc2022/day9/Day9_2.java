@@ -5,6 +5,7 @@ import org.pashkov.aoc2022.util.FileReaderImpl;
 import java.util.*;
 
 public class Day9_2 {
+    //2230 no
 //2440 to high
     //1380 to low
     private static Set<String> tailTrack = new TreeSet<>();
@@ -83,6 +84,22 @@ public class Day9_2 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("day9-1e.txt");
+        return FileReaderImpl.readEachLinesFromFile("AoC2022/day9-1e.txt");
+    }
+
+    private static int [][] createMapWithResultTrack() {
+        int size = tailTrack.stream()
+                .map(s -> {
+                   String[] tempArr = s.split(":");
+                   int a = Integer.parseInt(tempArr[0]);
+                   int b = Integer.parseInt(tempArr[1]);
+                   return Math.max(a, b);
+                }).mapToInt(Integer::valueOf)
+                .max().getAsInt();
+
+        int[][] map = new int[size][size];
+        for (String strCords : tailTrack) {
+            strCords.split(":");
+        }
     }
 }

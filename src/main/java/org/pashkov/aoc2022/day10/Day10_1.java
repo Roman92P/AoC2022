@@ -32,18 +32,16 @@ public class Day10_1 {
                 sygnals.put("Circle " + circle, X);
             }
         }
-//        for(Map.Entry<String,Integer> entry : sygnals.entrySet()) {
-//            System.out.println(entry);
-//        }
+        for(Map.Entry<String,Integer> entry : sygnals.entrySet()) {
+            System.out.println(entry);
+        }
         List<Integer> resultSignals = new ArrayList<>();
         for (Integer i : indexes) {
            resultSignals.add(sygnals.get("Circle " + i) * i);
         }
-
         System.out.println(resultSignals.stream().mapToInt(Integer::intValue).sum());
     }
-
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("day10-1.txt");
+        return FileReaderImpl.readEachLinesFromFile("AoC2022/day10-1.txt");
     }
 }

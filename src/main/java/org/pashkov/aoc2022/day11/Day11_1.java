@@ -9,23 +9,41 @@ import java.util.stream.Collectors;
 public class Day11_1 {
     public static void main(String[] args) {
         Set<Monkey> monkeys = mapInputToMonkeyObj(getFileInput());
+        Map <Integer, Integer> inspectingCounters = new HashMap<>();
 
         int roundCounter = 0;
 
         while (true) {
-            startRound(monkeys);
-            roundCounter++;
-            if (roundCounter == 1) {
+            if (roundCounter == 20) {
                 break;
             }
+            startRound(monkeys, inspectingCounters);
+            roundCounter++;
         }
 
         for (Monkey m : monkeys) {
             System.out.println(m);
         }
+
+        List<Integer> result = new ArrayList<>();
+        for (Map.Entry<Integer,Integer> entry : inspectingCounters.entrySet()) {
+            System.out.printf("Monkey %d inspected items %d times.", entry.getKey(), entry.getValue());
+            System.out.println();
+            result.add(entry.getValue());
+        }
+        List<Integer> twoMostActiveMonkeys = result.stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+        Collections.reverse(twoMostActiveMonkeys);
+
+        System.out.println(twoMostActiveMonkeys);
+        int r = twoMostActiveMonkeys.get(0) * twoMostActiveMonkeys.get(1);
+        System.out.println(r);
+
     }
 
-    private static void startRound(Set<Monkey> monkeys) {
+    private static void startRound(Set<Monkey> monkeys, Map<Integer, Integer> inspectingCounters) {
         for (Monkey monkey : monkeys) {
             System.out.printf("Monkey %d: ", monkey.getId());
             System.out.println();
@@ -34,6 +52,10 @@ public class Day11_1 {
             int divTestValue = monkey.getDivisibleTest();
             List<String> conditions = monkey.getConditions();
             for (int item : mItems) {
+                //update monkey inspection counter
+                int c = Optional.ofNullable(inspectingCounters.get(monkey.id)).orElse(0);
+                inspectingCounters.put(monkey.id, c+1);
+
                 int toRemove = item;
                 System.out.printf("Monkey inspects an item with a worry level of %d: ", item);
                 System.out.println();
@@ -157,7 +179,7 @@ public class Day11_1 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("AoC2022/day11_1e.txt");
+        return FileReaderImpl.readEachLinesFromFile("AoC2022/day11_1.txt");
     }
 
     private static class Monkey {

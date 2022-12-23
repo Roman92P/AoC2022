@@ -2,23 +2,24 @@ package org.pashkov.aoc2022.day11;
 
 import org.pashkov.aoc2022.util.FileReaderImpl;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Day11_1 {
+public class Day11_2 {
     public static void main(String[] args) {
         Set<Monkey> monkeys = mapInputToMonkeyObj(getFileInput());
-        Map <Integer, Integer> inspectingCounters = new HashMap<>();
+        Map<Integer, Integer> inspectingCounters = new HashMap<>();
 
         int roundCounter = 0;
 
         while (true) {
-            if (roundCounter == 20) {
+            System.out.println("__________________ROUND" + (roundCounter + 1) + "_______________________________");
+            if (roundCounter == 10000) {
                 break;
             }
             startRound(monkeys, inspectingCounters);
             roundCounter++;
+            System.out.println("_______________________END ROUND________________________");
         }
 
         for (Monkey m : monkeys) {
@@ -26,7 +27,7 @@ public class Day11_1 {
         }
 
         List<Integer> result = new ArrayList<>();
-        for (Map.Entry<Integer,Integer> entry : inspectingCounters.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : inspectingCounters.entrySet()) {
             System.out.printf("Monkey %d inspected items %d times.", entry.getKey(), entry.getValue());
             System.out.println();
             result.add(entry.getValue());
@@ -38,7 +39,7 @@ public class Day11_1 {
         Collections.reverse(twoMostActiveMonkeys);
 
         System.out.println(twoMostActiveMonkeys);
-        int r = twoMostActiveMonkeys.get(0) * twoMostActiveMonkeys.get(1);
+        long r = (long) twoMostActiveMonkeys.get(0) * twoMostActiveMonkeys.get(1);
         System.out.println(r);
 
     }
@@ -46,21 +47,17 @@ public class Day11_1 {
     private static void startRound(Set<Monkey> monkeys, Map<Integer, Integer> inspectingCounters) {
         for (Monkey monkey : monkeys) {
             System.out.printf("Monkey %d: ", monkey.getId());
-            System.out.println();
-            List<Integer> mItems = monkey.getStartingItems();
+            System.out.println("Items: " + monkey.getStartingItems());
+            List<Long> mItems = monkey.getStartingItems();
             String operation = monkey.getOperation();
             int divTestValue = monkey.getDivisibleTest();
             List<String> conditions = monkey.getConditions();
-            for (int item : mItems) {
-                //update monkey inspection counter
-                int c = Optional.ofNullable(inspectingCounters.get(monkey.id)).orElse(0);
-                inspectingCounters.put(monkey.id, c+1);
-
-                int toRemove = item;
+            for (Long item : mItems) {
+                Long toRemove = item;
                 System.out.printf("Monkey inspects an item with a worry level of %d: ", item);
                 System.out.println();
                 item = applyOperationToItem(item, operation);
-                item = divideByThree(item);
+                item = keepItemValueSmall(item, monkeys);
                 if (item % divTestValue == 0) {
                     String trueCondition = conditions.get(0);
                     String monkeyId = trueCondition.substring(trueCondition.length() - 1);
@@ -75,16 +72,33 @@ public class Day11_1 {
                     throwItemToMonkey(item, Integer.parseInt(monkeyId), monkeys);
                 }
                 removeMonkeyItemAfterInspection(toRemove, monkey.getId(), monkeys);
+                //update monkey inspection counter
+                int c = Optional.ofNullable(inspectingCounters.get(monkey.id)).orElse(0);
+                inspectingCounters.put(monkey.getId(), c + 1);
+                System.out.println("Monkey: " + monkey.getId() + ". Inspection number: " + (c + 1));
                 System.out.println("+++++++++++++++++++++++++++++++++++++++++++");
             }
         }
     }
 
-    private static void removeMonkeyItemAfterInspection(int toRemove, int id, Set<Monkey> monkeys) {
+    private static long keepItemValueSmall(long item, Set<Monkey> monkeys) {
+        long mult = 1;
+        for (Integer integer : monkeys.stream()
+                .mapToInt(Monkey::getDivisibleTest)
+                .boxed()
+                .collect(Collectors.toList())) {
+            mult *= integer;
+        }
+        if (item > mult)
+            return item % mult;
+        return item;
+    }
+
+    private static void removeMonkeyItemAfterInspection(long toRemove, int id, Set<Monkey> monkeys) {
         monkeys.stream()
                 .map(monkey -> {
                     if (monkey.getId() == id) {
-                        List<Integer> updatedItems = monkey.getStartingItems();
+                        List<Long> updatedItems = monkey.getStartingItems();
                         updatedItems = updatedItems.stream().filter(integer -> integer != toRemove)
                                 .collect(Collectors.toList());
                         monkey.setStartingItems(updatedItems);
@@ -94,20 +108,12 @@ public class Day11_1 {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private static int divideByThree(int item) {
-        double result = 0;
-        result = item / 3.0;
-        BigDecimal a = BigDecimal.valueOf(result).setScale(0, BigDecimal.ROUND_DOWN);
-        System.out.printf("Monkey gets bored with item. Worry level is divided by 3 to %d.", a.intValue());
-        System.out.println();
-        return a.intValue();
-    }
 
-    private static void throwItemToMonkey(int item, int id, Set<Monkey> monkeys) {
+    private static void throwItemToMonkey(long item, int id, Set<Monkey> monkeys) {
         monkeys.stream()
                 .map(monkey -> {
                     if (monkey.getId() == id) {
-                        List<Integer> updatedItems = monkey.getStartingItems();
+                        List<Long> updatedItems = monkey.getStartingItems();
                         updatedItems.add(item);
                         monkey.setStartingItems(updatedItems);
                     }
@@ -118,13 +124,13 @@ public class Day11_1 {
         System.out.println();
     }
 
-    private static int applyOperationToItem(int item, String operation) {
+    private static long applyOperationToItem(long item, String operation) {
         String[] opArr = operation.split("\\s");
         String arg1 = opArr[0];
         String arg2 = opArr[2];
 
-        int a1 = arg1.equals("old") ? item : Integer.parseInt(arg1);
-        int b1 = arg2.equals("old") ? item : Integer.parseInt(arg2);
+        long a1 = arg1.equals("old") ? item : Long.parseLong(arg1);
+        long b1 = arg2.equals("old") ? item : Long.parseLong(arg2);
 
         switch (opArr[1].trim()) {
             case "+":
@@ -157,7 +163,7 @@ public class Day11_1 {
                     String[] monkeyItemsArr = monkeyStrArr[i].replaceAll("[a-zA-Z:\\s]", "")
                             .split(",");
                     monkey.setStartingItems(Arrays.stream(monkeyItemsArr)
-                            .mapToInt(Integer::valueOf)
+                            .mapToLong(Integer::valueOf)
                             .boxed()
                             .collect(Collectors.toList()));
                 } else if (monkeyStrArr[i].startsWith("Operation")) {
@@ -179,12 +185,12 @@ public class Day11_1 {
     }
 
     private static List<String> getFileInput() {
-        return FileReaderImpl.readEachLinesFromFile("AoC2022/day11_1e.txt");
+        return FileReaderImpl.readEachLinesFromFile("AoC2022/day11_1.txt");
     }
 
     private static class Monkey {
         private int id;
-        private List<Integer> startingItems = new LinkedList<>();
+        private List<Long> startingItems = new LinkedList<>();
         private int divisibleTest;
         private List<String> conditions = new LinkedList<>();
         private String operation;
@@ -205,11 +211,11 @@ public class Day11_1 {
             this.id = id;
         }
 
-        public List<Integer> getStartingItems() {
+        public List<Long> getStartingItems() {
             return startingItems;
         }
 
-        public void setStartingItems(List<Integer> startingItems) {
+        public void setStartingItems(List<Long> startingItems) {
             this.startingItems = startingItems;
         }
 
